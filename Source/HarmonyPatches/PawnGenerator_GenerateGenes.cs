@@ -27,64 +27,106 @@ public static class PawnGenerator_GenerateGenes
 			return;
 		}
 
-		if (request.Faction is { } faction)
-			SetXenotypeForFaction(faction, ref request);
+		// FORKED: requests that restrict the allowed xenotypes (quests etc.) are left alone
+		if (request.AllowedXenotypes is { Count: > 0 })
+			return;
 
-		if (request.KindDef is { } pawnKindDef)
-			SetXenotypeForPawnKind(pawnKindDef, ref request);
+		if (TryGetCustomXenotype(ref request, out var customXenotype))
+			request.ForcedCustomXenotype = customXenotype;
+	}
 
-		/*if (request.ForcedCustomXenotype == null
-			&& TryGetReplacement(xenotype!, out var replacementXenotype))
+	/// <summary>
+	/// FORKED: Custom xenotypes are rolled only once, using the most specific config that has any custom
+	/// xenotype chance assigned (pawnkind, then memes, then faction).
+	/// This method only runs after vanilla already picked Baseliner, so the configured chance gets divided by
+	/// vanilla's Baseliner chance. That way the overall spawn rate of custom xenotypes matches the configured value,
+	/// instead of being reduced by vanilla's Baseliner chance and compounded by rolling once per config level.
+	/// </summary>
+	private static bool TryGetCustomXenotype(ref PawnGenerationRequest request,
+		[NotNullWhen(true)] out CustomXenotype? result)
+	{
+		result = null;
+
+		if (!TryGetMostSpecificCustomChances(ref request, out var getXenotype, out var customChanceSum))
+			return false;
+
+		var vanillaBaselinerChance = GetVanillaBaselinerChance(ref request);
+		if (vanillaBaselinerChance <= 0f)
+			return false;
+
+		if (!Rand.Chance(Mathf.Clamp01(customChanceSum / vanillaBaselinerChance)))
+			return false;
+
+		result = getXenotype();
+		return result != null;
+	}
+
+	private static bool TryGetMostSpecificCustomChances(ref PawnGenerationRequest request,
+		[NotNullWhen(true)] out Func<CustomXenotype?>? getXenotype, out float customChanceSum)
+	{
+		if (request.KindDef is { } pawnKindDef
+			&& TryGetCustomChances<PawnKindDef>(pawnKindDef.defName, out getXenotype, out customChanceSum))
 		{
-			request.ForcedCustomXenotype = replacementXenotype.CustomXenotype;
-		}*/
-	}
-
-	// This here would replace the Baseliner xenotype if replacing it would be supported by this mod. It is not, however.
-	// private static bool TryGetReplacement(XenotypeDef xenotypeDef, out ModifiableXenotype replacementXenotype)
-	//	=> ModifiableXenotypeDatabase.CustomXenotypes.TryGetValue(xenotypeDef.defName, out replacementXenotype);
-
-	private static void SetXenotypeForFaction(Faction faction, ref PawnGenerationRequest request)
-	{
-		if (TryGetCustomXenotypeByWeight<FactionDef>(faction.def.defName, out var factionXenotype))
-			request.ForcedCustomXenotype = factionXenotype;
-
-		if (faction.ideos?.PrimaryIdeo?.memes is { } memes)
-			SetXenotypeForMemes(memes, ref request);
-	}
-
-	private static void SetXenotypeForMemes(List<MemeDef> memes, ref PawnGenerationRequest request)
-	{
-		for (var j = 0; j < memes.Count; j++)
-		{
-			if (TryGetCustomXenotypeByWeight<MemeDef>(memes[j].defName, out var memeXenotype))
-				request.ForcedCustomXenotype = memeXenotype;
-		}
-	}
-
-	private static void SetXenotypeForPawnKind(PawnKindDef pawnKindDef, ref PawnGenerationRequest request)
-	{
-		if (TryGetCustomXenotypeByWeight<PawnKindDef>(pawnKindDef.defName, out var pawnKindXenotype))
-			request.ForcedCustomXenotype = pawnKindXenotype;
-	}
-
-	private static bool TryGetCustomXenotypeByWeight<T>(string defName, [NotNullWhen(true)] out CustomXenotype? result)
-		where T : Def
-	{
-		var xenotypeChances = XenotypeChanceDatabase<T>.For(defName);
-
-		if (Rand.Range(0f, 1f) <= xenotypeChances.GetCustomXenotypeChanceValueSum()
-			&& xenotypeChances.CustomXenotypeChances.TryRandomElementByWeight(chance => chance.RawValue, out var randomResult))
-		{
-			var randomResultXenotype = randomResult.Xenotype;
-			result = randomResultXenotype is ModifiableXenotype.Generated xenotypeGenerator
-				? xenotypeGenerator.GenerateXenotype(xenotypeChances)
-				: randomResultXenotype.CustomXenotype ?? throw new("Tried setting null xenotype");
-
 			return true;
 		}
 
-		result = null;
+		if (request.Faction is { } faction)
+		{
+			if (faction.ideos?.PrimaryIdeo?.memes is { } memes)
+			{
+				// later memes used to overwrite earlier ones, so they keep priority
+				for (var i = memes.Count - 1; i >= 0; i--)
+				{
+					if (TryGetCustomChances<MemeDef>(memes[i].defName, out getXenotype, out customChanceSum))
+						return true;
+				}
+			}
+
+			if (TryGetCustomChances<FactionDef>(faction.def.defName, out getXenotype, out customChanceSum))
+				return true;
+		}
+
+		getXenotype = null;
+		customChanceSum = 0f;
 		return false;
+	}
+
+	private static bool TryGetCustomChances<T>(string defName, [NotNullWhen(true)] out Func<CustomXenotype?>? getXenotype,
+		out float customChanceSum) where T : Def
+	{
+		var xenotypeChances = XenotypeChanceDatabase<T>.For(defName);
+		customChanceSum = xenotypeChances.GetCustomXenotypeChanceValueSum();
+
+		if (customChanceSum <= 0f)
+		{
+			getXenotype = null;
+			return false;
+		}
+
+		getXenotype = () => PickCustomXenotype(xenotypeChances);
+		return true;
+	}
+
+	internal static CustomXenotype? PickCustomXenotype<T>(XenotypeChances<T> xenotypeChances) where T : Def
+	{
+		if (!xenotypeChances.CustomXenotypeChances.TryRandomElementByWeight(static chance => chance.RawValue,
+			out var randomResult))
+		{
+			return null;
+		}
+
+		return randomResult.Xenotype is ModifiableXenotype.Generated xenotypeGenerator
+			? xenotypeGenerator.GenerateXenotype(xenotypeChances).Copy()
+			: randomResult.Xenotype.CustomXenotype ?? throw new("Tried setting null xenotype");
+	}
+
+	private static float GetVanillaBaselinerChance(ref PawnGenerationRequest request)
+	{
+		if (request.KindDef is not { } kindDef)
+			return 1f;
+
+		var faction = request.Faction;
+		var chances = PawnGenerator.XenotypesAvailableFor(kindDef, faction?.def, faction);
+		return chances.TryGetValue(XenotypeDefOf.Baseliner, out var baselinerChance) ? baselinerChance : 0f;
 	}
 }

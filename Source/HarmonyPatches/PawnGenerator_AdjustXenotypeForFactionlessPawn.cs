@@ -23,7 +23,7 @@ public static class PawnGenerator_AdjustXenotypeForFactionlessPawn
 				=> chance.RawValue, out var result))
 		{
 			request.ForcedCustomXenotype = result.Xenotype is ModifiableXenotype.Generated xenotypeGenerator
-				? xenotypeGenerator.GenerateXenotype(xenotypeChances)
+				? xenotypeGenerator.GenerateXenotype(xenotypeChances).Copy()
 				: result.Xenotype.CustomXenotype;
 			xenotype = XenotypeDefOf.Baseliner;
 		}

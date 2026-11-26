@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-	<name>Xenotype Spawn Control</name>
-	<packageId>bs.xenotypespawncontrol</packageId>
+	<name>Xenotype Spawn Control FORKED</name>
+	<packageId>KLR.XenotypeSpawnControl</packageId>
 	<modIconPath IgnoreIfNoMatchingField="True">XenotypeSpawnControl/ModIcon</modIconPath>
 	<supportedVersions>
-		<li>1.4</li>
-		<li>1.5</li>
 		<li>1.6</li>
+		<li>1.7</li>
 	</supportedVersions>
 	<authors>
 		<li>Bradson</li>
 		<li>Gordohn</li>
+		<li>Kulur</li>
 	</authors>
-	<url>https://github.com/bbradson/Xenotype-Spawn-Control</url>
+	<url>https://github.com/Kulur-K/Xenotype-Spawn-Control-Forked</url>
 	<loadAfter>
 		<li>brrainz.harmony</li>
 		<li>Ludeon.RimWorld</li>
 	</loadAfter>
+	<incompatibleWith>
+		<li>bs.xenotypespawncontrol</li>
+	</incompatibleWith>
 	<modDependencies>
 		<li>
 			<packageId>brrainz.harmony</packageId>
@@ -29,5 +32,7 @@
 			<displayName>Biotech</displayName>
 		</li>
 	</modDependencies>
-	<description>Diversify the xenotypes in your world! Xenotype Spawn Control grants full control over spawn rates of xenotypes, including those made by yourself, within factions, pawnkinds and even memes. Additionally it adds options to spawn randomly generated, fully unique xenotypes and hybrids. A neat overview of selfmade xenotypes with quick access to the editor is included too.</description>
+	<description>Unofficial fork of Xenotype Spawn Control by Bradson and Gordohn, with fixed spawn chances and RimWorld 1.7 support. Do not use together with the original mod.
+
+Diversify the xenotypes in your world! Xenotype Spawn Control grants full control over spawn rates of xenotypes, including those made by yourself, within factions, pawnkinds and even memes. Additionally it adds options to spawn randomly generated, fully unique xenotypes and hybrids. A neat overview of selfmade xenotypes with quick access to the editor is included too.</description>
 </ModMetaData>
