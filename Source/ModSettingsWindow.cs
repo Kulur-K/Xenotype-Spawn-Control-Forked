@@ -213,11 +213,18 @@ public static class ModSettingsWindow
 			if (_currentlySelectedDefName is null)
 				return;
 
+			var xenotypeChances = XenotypeChanceDatabase<T>.For(_currentlySelectedDefName);
+
+			// FORKED: options stay visible below the scrolling list
+			const float footerHeight = (FOOTER_ROW_HEIGHT * 2f) + 14f;
+			var footerRect = outRect with { yMin = outRect.yMax - footerHeight, width = outRect.width - 20f };
+			outRect.yMax -= footerHeight;
+			DrawFooter(footerRect, xenotypeChances);
+
 			using var listingScope
 				= new ScrollableListingScope(outRect, _xenotypeScrollViewStatus, new() { verticalSpacing = 4f });
 			
 			var listing = listingScope.Listing;
-			var xenotypeChances = XenotypeChanceDatabase<T>.For(_currentlySelectedDefName);
 
 			TemplateButtons(listing, xenotypeChances);
 			listing.Gap(6f);
@@ -278,29 +285,6 @@ public static class ModSettingsWindow
 						&& other.Xenotype.DisplayLabel.EqualsIgnoreCase(label)));
 			}
 
-			listing.GapLine();
-
-			var architeCheckboxResult = xenotypeChances.AllowArchiteXenotypes;
-			listing.CheckboxLabeled(Strings.Translated.AllowArchiteXenotypes, ref architeCheckboxResult);
-			xenotypeChances.AllowArchiteXenotypes = architeCheckboxResult;
-
-			listing.Gap(6f);
-			XenotypeChancesTypeButtons(listing, xenotypeChances);
-			SetAllWeightsButton(listing, xenotypeChances);
-
-			// hint to notify user about the total chance of weighted xenotypes
-			// seems useless
-			// if (!xenotypeChances.OnlyAbsoluteChancesAllowed)
-			// {
-			// 	listing.Label($"{Strings.Translated.WeightDistributionHint} {
-			// 		(xenotypeChances.GetRawWeightedDistributionChance() / 10f).ToString("##0.#",
-			// 			CultureInfo.InvariantCulture)}%");
-			// }
-			
-			listing.Gap(6f);
-
-			if (listing.ButtonText(Strings.Translated.Reset))
-				xenotypeChances.Reset();
 		}
 
 		private static int CompareLabelsAndNames(ModifiableXenotype a, ModifiableXenotype b)
@@ -389,45 +373,63 @@ public static class ModSettingsWindow
 			}
 		}
 
-		private static void XenotypeChancesTypeButtons(Listing_Standard listing, XenotypeChances<T> xenotypeChances)
-		{
-			var onlyAbsolute = xenotypeChances.OnlyAbsoluteChancesAllowed;
-			var onlyWeighted = xenotypeChances.OnlyWeightedChancesAllowed;
-
-			var drawDoubleButton = !onlyAbsolute && !onlyWeighted;
-			var listingButtonY = listing.curY;
-			
-			if (drawDoubleButton)
-				listing.ColumnWidth /= 2f;
-			
-			if (!onlyAbsolute && listing.ButtonText(Strings.Translated.AbsoluteToggle))
-				xenotypeChances.SetIsAbsoluteForAllowed(true);
-			
-			if (drawDoubleButton)
-			{
-				listing.curX += listing.ColumnWidth;
-				listing.curY = listingButtonY;
-			}
-			
-			if (!onlyWeighted && listing.ButtonText(Strings.Translated.WeightedToggle))
-				xenotypeChances.SetIsAbsoluteForAllowed(false);
-
-			if (!drawDoubleButton)
-				return;
-
-			listing.curX -= listing.ColumnWidth;
-			listing.ColumnWidth *= 2;
-		}
+		private const float FOOTER_ROW_HEIGHT = 30f;
 
 		private (float Value, string String) _allWeightSetterValue = (1, "1");
 
-		private void SetAllWeightsButton(Listing_Standard listing, XenotypeChances<T> xenotypeChances)
+		/// <summary>FORKED: archite checkbox on the first row, mode, weight and reset buttons on the second</summary>
+		private void DrawFooter(Rect rect, XenotypeChances<T> xenotypeChances)
 		{
-			var weightsButtonResult = listing.TextBoxButton(Strings.Translated.WeightSetterButton, _allWeightSetterValue.String);
-			Listing_StandardExtensions.InterpretWeightString(ref _allWeightSetterValue, weightsButtonResult.Text);
-			
-			if (weightsButtonResult.Clicked)
+			const float gap = 6f;
+
+			var color = GUI.color;
+			GUI.color = new(1f, 1f, 1f, 0.3f);
+			Widgets.DrawLineHorizontal(rect.x, rect.y + 2f, rect.width);
+			GUI.color = color;
+
+			var architeRect = new Rect(rect.x, rect.y + 8f, rect.width, FOOTER_ROW_HEIGHT);
+			var architeCheckboxResult = xenotypeChances.AllowArchiteXenotypes;
+			Widgets.CheckboxLabeled(architeRect, Strings.Translated.AllowArchiteXenotypes, ref architeCheckboxResult);
+			xenotypeChances.AllowArchiteXenotypes = architeCheckboxResult;
+
+			var row = new Rect(rect.x, architeRect.yMax + 4f, rect.width, FOOTER_ROW_HEIGHT);
+			var onlyAbsolute = xenotypeChances.OnlyAbsoluteChancesAllowed;
+			var onlyWeighted = xenotypeChances.OnlyWeightedChancesAllowed;
+			var modeButtonCount = (onlyAbsolute ? 0 : 1) + (onlyWeighted ? 0 : 1);
+
+			var resetWidth = Math.Max(70f, Text.CalcSize(Strings.Translated.Reset).x + 20f);
+			var weightFieldWidth = 50f;
+			var remaining = row.width - resetWidth - weightFieldWidth - (gap * (modeButtonCount + 2));
+			var buttonWidth = remaining / (modeButtonCount + 1);
+
+			var x = row.x;
+			if (!onlyAbsolute)
+			{
+				if (Widgets.ButtonText(new(x, row.y, buttonWidth, row.height), Strings.Translated.AbsoluteToggle))
+					xenotypeChances.SetIsAbsoluteForAllowed(true);
+
+				x += buttonWidth + gap;
+			}
+
+			if (!onlyWeighted)
+			{
+				if (Widgets.ButtonText(new(x, row.y, buttonWidth, row.height), Strings.Translated.WeightedToggle))
+					xenotypeChances.SetIsAbsoluteForAllowed(false);
+
+				x += buttonWidth + gap;
+			}
+
+			var setWeightsClicked = Widgets.ButtonText(new(x, row.y, buttonWidth, row.height),
+				Strings.Translated.WeightSetterButton);
+			x += buttonWidth + 2f;
+
+			var weightText = Widgets.TextField(new(x, row.y, weightFieldWidth, row.height), _allWeightSetterValue.String);
+			Listing_StandardExtensions.InterpretWeightString(ref _allWeightSetterValue, weightText);
+			if (setWeightsClicked)
 				xenotypeChances.SetWeightForAllowedWeightedXenotypes(_allWeightSetterValue.Value);
+
+			if (Widgets.ButtonText(new(row.xMax - resetWidth, row.y, resetWidth, row.height), Strings.Translated.Reset))
+				xenotypeChances.Reset();
 		}
 
 		private static void InactiveLabel(Listing_Standard listing,

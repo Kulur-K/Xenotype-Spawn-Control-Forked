@@ -15,9 +15,9 @@
 	<bs.xsc.NoTemplateHint>No Templates</bs.xsc.NoTemplateHint>
 	<bs.xsc.AllowArchiteXenotypes>Allow Archite Xenotypes</bs.xsc.AllowArchiteXenotypes>
 	<bs.xsc.Weight>Weight</bs.xsc.Weight>
-	<bs.xsc.AbsoluteToggle>Set all chances to absolute</bs.xsc.AbsoluteToggle>
-	<bs.xsc.WeightedToggle>Set all chances to weighted</bs.xsc.WeightedToggle>
-	<bs.xsc.WeightSetterButton>Set all weights to</bs.xsc.WeightSetterButton>
+	<bs.xsc.AbsoluteToggle>All to percent</bs.xsc.AbsoluteToggle>
+	<bs.xsc.WeightedToggle>All to weight</bs.xsc.WeightedToggle>
+	<bs.xsc.WeightSetterButton>Set all weights</bs.xsc.WeightSetterButton>
 	<bs.xsc.IndividualAbsoluteModeToggleTooltip>Percent: the entered value is the spawn chance.\nWeight: the chance left over by percent entries is shared among weighted xenotypes by their weights.\nClick to switch.</bs.xsc.IndividualAbsoluteModeToggleTooltip>
 	<!-- FORKED -->
 	<klr.xscf.ExistingXenotypes>Existing xenotypes</klr.xscf.ExistingXenotypes>

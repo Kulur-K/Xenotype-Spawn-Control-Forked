@@ -13,11 +13,11 @@
 	<bs.xsc.ConfirmResetXenotypeSpawnControl>Xenotype Spawn Control の設定をすべてリセットしますか？</bs.xsc.ConfirmResetXenotypeSpawnControl>
 	<bs.xsc.Templates>テンプレート</bs.xsc.Templates>
 	<bs.xsc.NoTemplateHint>テンプレートなし</bs.xsc.NoTemplateHint>
-	<bs.xsc.AllowArchiteXenotypes>アーカイト遺伝子を持つゼノタイプを許可</bs.xsc.AllowArchiteXenotypes>
+	<bs.xsc.AllowArchiteXenotypes>アルカイト遺伝子を持つゼノタイプを許可</bs.xsc.AllowArchiteXenotypes>
 	<bs.xsc.Weight>重み</bs.xsc.Weight>
-	<bs.xsc.AbsoluteToggle>すべて割合指定にする</bs.xsc.AbsoluteToggle>
-	<bs.xsc.WeightedToggle>すべて重み指定にする</bs.xsc.WeightedToggle>
-	<bs.xsc.WeightSetterButton>すべての重みを次の値にする:</bs.xsc.WeightSetterButton>
+	<bs.xsc.AbsoluteToggle>全部割合に</bs.xsc.AbsoluteToggle>
+	<bs.xsc.WeightedToggle>全部重みに</bs.xsc.WeightedToggle>
+	<bs.xsc.WeightSetterButton>重みを一括設定</bs.xsc.WeightSetterButton>
 	<bs.xsc.IndividualAbsoluteModeToggleTooltip>割合: 入力した%がそのまま出現率になります。\n重み: 割合指定で使われなかった残りの%を、重み指定のゼノタイプ同士で重みの比に分けます。\nクリックで切り替え。</bs.xsc.IndividualAbsoluteModeToggleTooltip>
 	<!-- FORKED -->
 	<klr.xscf.ExistingXenotypes>既存ゼノタイプ</klr.xscf.ExistingXenotypes>
