@@ -32,6 +32,7 @@
 		<Publicize Include="Assembly-CSharp:RimWorld.GeneCreationDialogBase.ignoreRestrictions" />
 		<Publicize Include="Assembly-CSharp:RimWorld.GeneCreationDialogBase.WithinAcceptableBiostatLimits" />
 		<Publicize Include="Assembly-CSharp:RimWorld.GeneCreationDialogBase.xenotypeName" />
+		<Publicize Include="Assembly-CSharp:RimWorld.GeneCreationDialogBase.xenotypeNameLocked" />
 		<Publicize Include="Assembly-CSharp:RimWorld.GeneSet.genes" />
 		<Publicize Include="Assembly-CSharp:RimWorld.XenotypeSet.xenotypeChances" />
 		<Publicize Include="Assembly-CSharp:Verse.IntRange.Includes" />
