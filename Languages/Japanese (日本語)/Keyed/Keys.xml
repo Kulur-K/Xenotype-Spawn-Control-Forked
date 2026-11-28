@@ -15,8 +15,8 @@
 	<bs.xsc.NoTemplateHint>テンプレートなし</bs.xsc.NoTemplateHint>
 	<bs.xsc.AllowArchiteXenotypes>アルカイト遺伝子を持つゼノタイプを許可</bs.xsc.AllowArchiteXenotypes>
 	<bs.xsc.Weight>重み</bs.xsc.Weight>
-	<bs.xsc.AbsoluteToggle>全部割合に</bs.xsc.AbsoluteToggle>
-	<bs.xsc.WeightedToggle>全部重みに</bs.xsc.WeightedToggle>
+	<bs.xsc.AbsoluteToggle>全て割合指定</bs.xsc.AbsoluteToggle>
+	<bs.xsc.WeightedToggle>全て重み指定</bs.xsc.WeightedToggle>
 	<bs.xsc.WeightSetterButton>重みを一括設定</bs.xsc.WeightSetterButton>
 	<bs.xsc.IndividualAbsoluteModeToggleTooltip>割合: 入力した%がそのまま出現率になります。\n重み: 割合指定で使われなかった残りの%を、重み指定のゼノタイプ同士で重みの比に分けます。\nクリックで切り替え。</bs.xsc.IndividualAbsoluteModeToggleTooltip>
 	<!-- FORKED -->
