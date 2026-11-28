@@ -5,6 +5,7 @@
 
 using System.IO;
 using System.Linq;
+using System.Xml;
 
 namespace XenotypeSpawnControl;
 
@@ -95,12 +96,21 @@ public static class ModifiableXenotypeDatabase
 		xenotype = null;
 		var absPath = GenFilePaths.AbsFilePathForXenotype(GenFile.SanitizedFileName(xenotypeName));
 		
+		string? tempPath = null;
+
 		try
 		{
-			Scribe.loader.InitLoading(absPath);
+			// FORKED: genes from mods that are no longer loaded used to log one red error per gene, plus
+			// "Removed null genes". Strip them beforehand and log a single warning instead.
+			var loadPath = absPath;
+			if (TryWriteCopyWithoutMissingGenes(absPath, xenotypeName, out var strippedPath))
+				loadPath = tempPath = strippedPath;
+
+			Scribe.loader.InitLoading(loadPath);
 			try
 			{
-				ScribeMetaHeaderUtility.LoadGameDataHeader(ScribeMetaHeaderUtility.ScribeHeaderMode.Xenotype, true);
+				// FORKED: don't warn about every xenotype file saved by an older game version
+				ScribeMetaHeaderUtility.LoadGameDataHeader(ScribeMetaHeaderUtility.ScribeHeaderMode.Xenotype, false);
 				Scribe_Deep.Look(ref xenotype, nameof(xenotype));
 				Scribe.loader.FinalizeLoading();
 			}
@@ -123,6 +133,54 @@ public static class ModifiableXenotypeDatabase
 			xenotype = null;
 			Scribe.ForceStop();
 		}
+		finally
+		{
+			if (tempPath != null)
+			{
+				try
+				{
+					File.Delete(tempPath);
+				}
+				catch
+				{
+					// ignored, it's a temp file
+				}
+			}
+		}
+	}
+
+	private static bool TryWriteCopyWithoutMissingGenes(string absPath, string xenotypeName,
+		[NotNullWhen(true)] out string? strippedPath)
+	{
+		strippedPath = null;
+
+		var document = new XmlDocument();
+		document.Load(absPath);
+
+		var geneNodes = document.SelectNodes("/*/xenotype/genes/li");
+		if (geneNodes is null)
+			return false;
+
+		var missingGenes = new List<XmlNode>();
+		foreach (XmlNode geneNode in geneNodes)
+		{
+			var defName = BackCompatibility.BackCompatibleDefName(typeof(GeneDef), geneNode.InnerText.Trim());
+			if (DefDatabase<GeneDef>.GetNamedSilentFail(defName) is null)
+				missingGenes.Add(geneNode);
+		}
+
+		if (missingGenes.Count == 0)
+			return false;
+
+		Log.Warning($"[Xenotype Spawn Control FORKED] Custom xenotype '{xenotypeName}' contains genes that are not loaded. They are skipped: {
+			string.Join(", ", missingGenes.ConvertAll(static node => node.InnerText.Trim()))}");
+
+		foreach (var geneNode in missingGenes)
+			geneNode.ParentNode?.RemoveChild(geneNode);
+
+		strippedPath = Path.Combine(Path.GetTempPath(), $"XSCF_{Guid.NewGuid():N}{Path.GetExtension(absPath)}");
+		document.Save(strippedPath);
+		return true;
 	}
 
 	private static ModifiableXenotype? SetCustomXenotype(CustomXenotype xenotype)

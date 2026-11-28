@@ -16,6 +16,19 @@ public static class ExtensionMethods
 		return value;
 	}
 
+	/// <summary>
+	/// FORKED: generated xenotypes reuse a single CustomXenotype instance. Hand out copies, so pawns or the game's
+	/// custom xenotype database never keep a reference to an object that gets overwritten on the next generation.
+	/// </summary>
+	public static CustomXenotype Copy(this CustomXenotype xenotype)
+		=> new()
+		{
+			name = xenotype.name,
+			genes = [..xenotype.genes],
+			inheritable = xenotype.inheritable,
+			iconDef = xenotype.iconDef
+		};
+
 	public static int Sum<TKey>(this List<TKey> list, Func<TKey, int> selector)
 	{
 		var sum = 0;
