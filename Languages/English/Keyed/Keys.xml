@@ -18,7 +18,7 @@
 	<bs.xsc.AbsoluteToggle>Set all chances to absolute</bs.xsc.AbsoluteToggle>
 	<bs.xsc.WeightedToggle>Set all chances to weighted</bs.xsc.WeightedToggle>
 	<bs.xsc.WeightSetterButton>Set all weights to</bs.xsc.WeightSetterButton>
-	<bs.xsc.IndividualAbsoluteModeToggleTooltip>Toggle whether this Xenotype uses absolute chances</bs.xsc.IndividualAbsoluteModeToggleTooltip>
+	<bs.xsc.IndividualAbsoluteModeToggleTooltip>Percent: the entered value is the spawn chance.\nWeight: the chance left over by percent entries is shared among weighted xenotypes by their weights.\nClick to switch.</bs.xsc.IndividualAbsoluteModeToggleTooltip>
 	<!-- FORKED -->
 	<klr.xscf.ExistingXenotypes>Existing xenotypes</klr.xscf.ExistingXenotypes>
 	<klr.xscf.ExistingXenotypesHint>Edits apply to all saves and only to pawns generated from now on. Existing pawns are not changed.</klr.xscf.ExistingXenotypesHint>
@@ -35,4 +35,6 @@
 	<klr.xscf.GroupVanilla>Vanilla</klr.xscf.GroupVanilla>
 	<klr.xscf.GroupCustom>Custom xenotypes</klr.xscf.GroupCustom>
 	<klr.xscf.BaselinerEditHint>Gene edits of Baseliner only apply to human baseliners. Custom xenotypes and other races keep the original genes.</klr.xscf.BaselinerEditHint>
+	<klr.xscf.ModeAbsolute>Percent</klr.xscf.ModeAbsolute>
+	<klr.xscf.ModeWeight>Weight</klr.xscf.ModeWeight>
 </LanguageData>

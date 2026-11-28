@@ -134,29 +134,17 @@ public static class ModSettingsWindow
 			
 			var listing = listingScope.Listing;
 
-			var defs = Defs.Select(static def => (def.LabelCap.Resolve(), def.defName)).ToList();
+			// FORKED: grouped by vanilla and each mod, like the xenotype lists
+			_groupedDefs ??= BuildGroupedDefs();
 
-			ReplaceEmptyLabels(defs);
-
-			defs.Sort(static (a, b)
-				=> string.CompareOrdinal(a.Item1, b.Item1) is var labelResult && labelResult != 0
-					? labelResult
-					: string.CompareOrdinal(a.defName, b.defName));
-
-			foreach (var def in defs)
+			string? currentGroup = null;
+			foreach (var (label, defName, group) in _groupedDefs)
 			{
-				var (label, defName) = def;
-
-				if (!defName.EqualsIgnoreCase(label)
-					&& defs.Exists(otherDef => otherDef.Item1.EqualsIgnoreCase(label) && otherDef.defName != defName))
+				if (group != currentGroup)
 				{
-					label += $" ({defName})";
+					currentGroup = group;
+					XenotypeGroups.DrawHeader(listing, group);
 				}
-
-				// if (searchOn && !defName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-				//	continue;
-				// if (defName.Length > LINE_MAX)
-				//	defName = defName.Substring(0, LINE_MAX) + "...";
 
 				if (listing.SelectionButton(label, _currentlySelectedDefName == defName))
 					_currentlySelectedDefName = defName;
@@ -165,11 +153,45 @@ public static class ModSettingsWindow
 			if (typeof(T) != typeof(FactionDef))
 				return;
 
+			listing.Gap(8f);
+
 			if (listing.SelectionButton(Strings.Translated.NoFaction,
 				_currentlySelectedDefName == Strings.NoFactionKey))
 			{
 				_currentlySelectedDefName = Strings.NoFactionKey;
 			}
+		}
+
+		private List<(string Label, string DefName, string Group)>? _groupedDefs;
+
+		private List<(string Label, string DefName, string Group)> BuildGroupedDefs()
+		{
+			var defs = Defs.Select(static def => (def.LabelCap.Resolve(), def.defName)).ToList();
+			ReplaceEmptyLabels(defs);
+
+			var groups = Defs.ToDictionary(static def => def.defName, static def => XenotypeGroups.GroupOf(def));
+
+			defs.Sort((a, b)
+				=> XenotypeGroups.Compare(groups[a.defName], groups[b.defName]) is var groupResult && groupResult != 0
+					? groupResult
+					: string.CompareOrdinal(a.Item1, b.Item1) is var labelResult && labelResult != 0
+						? labelResult
+						: string.CompareOrdinal(a.defName, b.defName));
+
+			var result = new List<(string, string, string)>(defs.Count);
+			foreach (var (defLabel, defName) in defs)
+			{
+				var label = defLabel;
+				if (!defName.EqualsIgnoreCase(label)
+					&& defs.Exists(otherDef => otherDef.Item1.EqualsIgnoreCase(label) && otherDef.defName != defName))
+				{
+					label += $" ({defName})";
+				}
+
+				result.Add((label, defName, XenotypeGroups.HeaderFor(groups[defName])!));
+			}
+
+			return result;
 		}
 
 		private static void ReplaceEmptyLabels(List<(string label, string defName)> defs)

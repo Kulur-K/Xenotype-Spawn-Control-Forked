@@ -62,7 +62,9 @@ public static class Strings
 			Search = "klr.xscf.Search",
 			GroupVanilla = "klr.xscf.GroupVanilla",
 			GroupCustom = "klr.xscf.GroupCustom",
-			BaselinerEditHint = "klr.xscf.BaselinerEditHint";
+			BaselinerEditHint = "klr.xscf.BaselinerEditHint",
+			ModeAbsolute = "klr.xscf.ModeAbsolute",
+			ModeWeight = "klr.xscf.ModeWeight";
 
 #pragma warning disable CS8618
 		static Translated() => TranslateAllFields(typeof(Translated));

@@ -18,7 +18,7 @@
 	<bs.xsc.AbsoluteToggle>すべて割合指定にする</bs.xsc.AbsoluteToggle>
 	<bs.xsc.WeightedToggle>すべて重み指定にする</bs.xsc.WeightedToggle>
 	<bs.xsc.WeightSetterButton>すべての重みを次の値にする:</bs.xsc.WeightSetterButton>
-	<bs.xsc.IndividualAbsoluteModeToggleTooltip>このゼノタイプを割合指定にするかを切り替える</bs.xsc.IndividualAbsoluteModeToggleTooltip>
+	<bs.xsc.IndividualAbsoluteModeToggleTooltip>割合: 入力した%がそのまま出現率になります。\n重み: 割合指定で使われなかった残りの%を、重み指定のゼノタイプ同士で重みの比に分けます。\nクリックで切り替え。</bs.xsc.IndividualAbsoluteModeToggleTooltip>
 	<!-- FORKED -->
 	<klr.xscf.ExistingXenotypes>既存ゼノタイプ</klr.xscf.ExistingXenotypes>
 	<klr.xscf.ExistingXenotypesHint>編集は全セーブ共通で、これから生成されるポーンにだけ反映されます。すでにいるポーンは変わりません。</klr.xscf.ExistingXenotypesHint>
@@ -35,4 +35,6 @@
 	<klr.xscf.GroupVanilla>バニラ</klr.xscf.GroupVanilla>
 	<klr.xscf.GroupCustom>自作ゼノタイプ</klr.xscf.GroupCustom>
 	<klr.xscf.BaselinerEditHint>ベースライナーの遺伝子の編集は、人間のベースライナーにだけ反映されます。自作ゼノタイプや他の種族は元の遺伝子のままです。</klr.xscf.BaselinerEditHint>
+	<klr.xscf.ModeAbsolute>割合</klr.xscf.ModeAbsolute>
+	<klr.xscf.ModeWeight>重み</klr.xscf.ModeWeight>
 </LanguageData>

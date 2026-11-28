@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Kulur
+﻿// Copyright (c) 2026 Kulur
 // This Source Code Form is subject to the terms of the MIT license.
 // If a copy of the license was not distributed with this file,
 // You can obtain one at https://opensource.org/licenses/MIT/.
@@ -20,23 +20,23 @@ public static class XenotypeGroups
 				? GroupOf(def)
 				: (CUSTOM, null);
 
-	public static (int Order, string? ModName) GroupOf(XenotypeDef def)
+	public static (int Order, string? ModName) GroupOf(Def def)
 		=> def.modContentPack is { IsOfficialMod: false } mod ? (MOD, mod.Name) : (VANILLA, null);
 
 	public static int Compare(ModifiableXenotype a, ModifiableXenotype b) => Compare(GroupOf(a), GroupOf(b));
 
-	public static int Compare(XenotypeDef a, XenotypeDef b) => Compare(GroupOf(a), GroupOf(b));
+	public static int Compare(Def a, Def b) => Compare(GroupOf(a), GroupOf(b));
 
-	private static int Compare((int Order, string? ModName) a, (int Order, string? ModName) b)
+	public static int Compare((int Order, string? ModName) a, (int Order, string? ModName) b)
 		=> a.Order != b.Order
 			? a.Order.CompareTo(b.Order)
 			: string.Compare(a.ModName, b.ModName, StringComparison.OrdinalIgnoreCase);
 
 	public static string? HeaderFor(ModifiableXenotype xenotype) => HeaderFor(GroupOf(xenotype));
 
-	public static string? HeaderFor(XenotypeDef def) => HeaderFor(GroupOf(def));
+	public static string? HeaderFor(Def def) => HeaderFor(GroupOf(def));
 
-	private static string? HeaderFor((int Order, string? ModName) group)
+	public static string? HeaderFor((int Order, string? ModName) group)
 		=> group.Order switch
 		{
 			VANILLA => Strings.Translated.GroupVanilla,
