@@ -32,4 +32,7 @@
 	<klr.xscf.RestoreOriginal>元の文に戻す</klr.xscf.RestoreOriginal>
 	<klr.xscf.NameEmpty>名前を空にはできません。</klr.xscf.NameEmpty>
 	<klr.xscf.Search>検索:</klr.xscf.Search>
+	<klr.xscf.GroupVanilla>バニラ</klr.xscf.GroupVanilla>
+	<klr.xscf.GroupCustom>自作ゼノタイプ</klr.xscf.GroupCustom>
+	<klr.xscf.BaselinerEditHint>ベースライナーの遺伝子の編集は、人間のベースライナーにだけ反映されます。自作ゼノタイプや他の種族は元の遺伝子のままです。</klr.xscf.BaselinerEditHint>
 </LanguageData>

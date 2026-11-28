@@ -210,10 +210,15 @@ public static class ModSettingsWindow
 			var allowedXenotypes = xenotypeChances.AllAllowedXenotypeChances
 				.Select(static xenotypeChance => (xenotypeChance.Xenotype, xenotypeChance)).ToList();
 
+			// FORKED: sort into groups: generated and baseliner first, then vanilla, each mod, and custom xenotypes
 			allowedXenotypes.Sort(static (aKey, bKey) =>
 			{
 				var a = aKey.Xenotype;
 				var b = bKey.Xenotype;
+
+				var groupResult = XenotypeGroups.Compare(a, b);
+				if (groupResult != 0)
+					return groupResult;
 
 				var bIsBaseliner = b.Def == XenotypeDefOf.Baseliner;
 
@@ -231,8 +236,17 @@ public static class ModSettingsWindow
 			});
 
 			// then show all configurable xenotypes
+			string? currentGroup = null;
 			foreach (var (xenotype, xenotypeChance) in allowedXenotypes)
 			{
+				var group = XenotypeGroups.HeaderFor(xenotype);
+				if (group != currentGroup)
+				{
+					currentGroup = group;
+					if (group != null)
+						XenotypeGroups.DrawHeader(listing, group);
+				}
+
 				var label = xenotype.DisplayLabel;
 
 				listing.XenotypeChanceDisplay(xenotypeChances, xenotypeChance, (label != xenotype.Name
@@ -486,6 +500,7 @@ public static class ModSettingsWindow
 	{
 		private readonly ScrollViewStatus _scrollViewStatus = new();
 		private string _searchText = "";
+		private List<XenotypeDef>? _editableDefs;
 		public Listing_Standard Listing { get; } = new() { verticalSpacing = 4f };
 
 		public override void DoWindowContents(Rect inRect)
@@ -503,13 +518,24 @@ public static class ModSettingsWindow
 
 			using var listingScope = new ScrollableListingScope(inRect, _scrollViewStatus, Listing);
 
-			foreach (var def in XenotypeDefEditDatabase.EditableDefs)
+			_editableDefs ??= XenotypeDefEditDatabase.EditableDefs;
+			string? currentGroup = null;
+
+			foreach (var def in _editableDefs)
 			{
 				if (_searchText.Length > 0
 					&& (def.label ?? "").IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0
 					&& def.defName.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0)
 				{
 					continue;
+				}
+
+				var group = XenotypeGroups.HeaderFor(def);
+				if (group != currentGroup)
+				{
+					currentGroup = group;
+					if (group != null)
+						XenotypeGroups.DrawHeader(Listing, group);
 				}
 
 				var rowRect = Listing.GetRect(rowHeight);
@@ -540,7 +566,11 @@ public static class ModSettingsWindow
 				TooltipHandler.TipRegion(labelRect, $"{def.LabelCap}\n{def.modContentPack?.Name ?? ""}\n\n{def.description}");
 
 				var buttonX = rowRect.xMax - ((buttonWidth + 4f) * buttonCount);
-				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f), Strings.Translated.Genes))
+				var genesButtonRect = new Rect(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f);
+				if (def == XenotypeDefOf.Baseliner)
+					TooltipHandler.TipRegion(genesButtonRect, Strings.Translated.BaselinerEditHint);
+
+				if (Widgets.ButtonText(genesButtonRect, Strings.Translated.Genes))
 					Find.WindowStack.Add(new Dialog_EditXenotypeDef(def));
 
 				buttonX += buttonWidth + 4f;

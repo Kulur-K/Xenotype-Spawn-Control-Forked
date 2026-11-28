@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Kulur
+﻿// Copyright (c) 2026 Kulur
 // This Source Code Form is subject to the terms of the MIT license.
 // If a copy of the license was not distributed with this file,
 // You can obtain one at https://opensource.org/licenses/MIT/.
@@ -62,10 +62,20 @@ public static class XenotypeDefEditDatabase
 		}
 	}
 
-	public static IEnumerable<XenotypeDef> EditableDefs
-		=> DefDatabase<XenotypeDef>.AllDefsListForReading
-			.Where(static def => def != XenotypeDefOf.Baseliner)
-			.OrderBy(static def => def.label ?? def.defName);
+	/// <summary>All xenotype defs, grouped by vanilla and each mod, Baseliner first</summary>
+	public static List<XenotypeDef> EditableDefs
+	{
+		get
+		{
+			var defs = DefDatabase<XenotypeDef>.AllDefsListForReading.ToList();
+			defs.Sort(static (a, b)
+				=> XenotypeGroups.Compare(a, b) is var groupResult && groupResult != 0 ? groupResult
+				: a == XenotypeDefOf.Baseliner ? -1
+				: b == XenotypeDefOf.Baseliner ? 1
+				: string.Compare(a.label ?? a.defName, b.label ?? b.defName, StringComparison.OrdinalIgnoreCase));
+			return defs;
+		}
+	}
 
 	public static void ExposeData()
 	{
@@ -95,6 +105,27 @@ public static class XenotypeDefEditDatabase
 	}
 
 	public static bool IsEdited(XenotypeDef def) => _edits.ContainsKey(def.defName);
+
+	/// <summary>
+	/// Temporarily puts the original genes back into the def, if its genes were edited.
+	/// Returns the edited genes to pass to <see cref="RestoreGenes"/>, or null when nothing changed.
+	/// </summary>
+	public static List<GeneDef>? SwapInOriginalGenes(XenotypeDef def)
+	{
+		if (!_edits.TryGetValue(def.defName, out var edit) || (edit.addedGenes.Count == 0 && edit.removedGenes.Count == 0))
+			return null;
+
+		var editedGenes = new List<GeneDef>(def.genes);
+		def.genes.Clear();
+		def.genes.AddRange(GetOriginal(def).Genes);
+		return editedGenes;
+	}
+
+	public static void RestoreGenes(XenotypeDef def, List<GeneDef> genes)
+	{
+		def.genes.Clear();
+		def.genes.AddRange(genes);
+	}
 
 	public static string OriginalDescription(XenotypeDef def) => GetOriginal(def).Description ?? "";
 

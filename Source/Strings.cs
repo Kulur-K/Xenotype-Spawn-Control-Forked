@@ -59,7 +59,10 @@ public static class Strings
 			EditDescriptionHeader = "klr.xscf.EditDescriptionHeader",
 			RestoreOriginal = "klr.xscf.RestoreOriginal",
 			NameEmpty = "klr.xscf.NameEmpty",
-			Search = "klr.xscf.Search";
+			Search = "klr.xscf.Search",
+			GroupVanilla = "klr.xscf.GroupVanilla",
+			GroupCustom = "klr.xscf.GroupCustom",
+			BaselinerEditHint = "klr.xscf.BaselinerEditHint";
 
 #pragma warning disable CS8618
 		static Translated() => TranslateAllFields(typeof(Translated));

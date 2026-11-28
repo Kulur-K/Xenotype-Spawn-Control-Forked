@@ -32,4 +32,7 @@
 	<klr.xscf.RestoreOriginal>Restore original</klr.xscf.RestoreOriginal>
 	<klr.xscf.NameEmpty>The name cannot be empty.</klr.xscf.NameEmpty>
 	<klr.xscf.Search>Search:</klr.xscf.Search>
+	<klr.xscf.GroupVanilla>Vanilla</klr.xscf.GroupVanilla>
+	<klr.xscf.GroupCustom>Custom xenotypes</klr.xscf.GroupCustom>
+	<klr.xscf.BaselinerEditHint>Gene edits of Baseliner only apply to human baseliners. Custom xenotypes and other races keep the original genes.</klr.xscf.BaselinerEditHint>
 </LanguageData>
