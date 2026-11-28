@@ -575,7 +575,7 @@ public static class ModSettingsWindow
 				GUI.DrawTexture(new(rowRect.x, rowRect.y + 1f, rowHeight - 2f, rowHeight - 2f), def.Icon);
 				GUI.color = color;
 
-				var buttonCount = edited ? 3 : 2;
+				const int buttonCount = 3; // FORKED: fixed columns, the reset column stays empty for unedited xenotypes
 				var labelRect = new Rect(rowRect.x + rowHeight + 6f, rowRect.y,
 					rowRect.width - rowHeight - 6f - ((buttonWidth + 4f) * 3), rowHeight);
 
