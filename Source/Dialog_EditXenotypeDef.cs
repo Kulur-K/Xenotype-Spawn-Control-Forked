@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Kulur
+﻿// Copyright (c) 2026 Kulur
 // This Source Code Form is subject to the terms of the MIT license.
 // If a copy of the license was not distributed with this file,
 // You can obtain one at https://opensource.org/licenses/MIT/.
@@ -19,6 +19,9 @@ public class Dialog_EditXenotypeDef : Dialog_CreateXenotype
 	{
 		_def = def;
 		xenotypeName = def.label ?? def.defName;
+
+		// keep the existing name when genes change. It can still be changed on purpose by typing a new one.
+		xenotypeNameLocked = true;
 
 		selectedGenes.Clear();
 		selectedGenes.AddRange(def.genes ?? []);
