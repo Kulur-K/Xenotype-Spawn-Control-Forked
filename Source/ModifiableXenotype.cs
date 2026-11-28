@@ -11,7 +11,7 @@ public partial class ModifiableXenotype
 
 	public virtual string DisplayLabel => Def?.LabelCap.Resolve() is not [_, ..] label ? Name : label;
 
-	public virtual string? Tooltip => Def?.descriptionShort;
+	public virtual string? Tooltip => Def?.descriptionShort ?? Def?.description; // FORKED: edited descriptions clear descriptionShort
 	
 	public XenotypeDef? Def { get; }
 	

@@ -32,6 +32,10 @@ public static class ModSettingsWindow
 		new EditorTab
 		{
 			Title = Strings.Translated.Editor
+		},
+		new ExistingXenotypesTab
+		{
+			Title = Strings.Translated.ExistingXenotypes
 		}
 	];
 
@@ -130,29 +134,17 @@ public static class ModSettingsWindow
 			
 			var listing = listingScope.Listing;
 
-			var defs = Defs.Select(static def => (def.LabelCap.Resolve(), def.defName)).ToList();
+			// FORKED: grouped by vanilla and each mod, like the xenotype lists
+			_groupedDefs ??= BuildGroupedDefs();
 
-			ReplaceEmptyLabels(defs);
-
-			defs.Sort(static (a, b)
-				=> string.CompareOrdinal(a.Item1, b.Item1) is var labelResult && labelResult != 0
-					? labelResult
-					: string.CompareOrdinal(a.defName, b.defName));
-
-			foreach (var def in defs)
+			string? currentGroup = null;
+			foreach (var (label, defName, group) in _groupedDefs)
 			{
-				var (label, defName) = def;
-
-				if (!defName.EqualsIgnoreCase(label)
-					&& defs.Exists(otherDef => otherDef.Item1.EqualsIgnoreCase(label) && otherDef.defName != defName))
+				if (group != currentGroup)
 				{
-					label += $" ({defName})";
+					currentGroup = group;
+					XenotypeGroups.DrawHeader(listing, group);
 				}
-
-				// if (searchOn && !defName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-				//	continue;
-				// if (defName.Length > LINE_MAX)
-				//	defName = defName.Substring(0, LINE_MAX) + "...";
 
 				if (listing.SelectionButton(label, _currentlySelectedDefName == defName))
 					_currentlySelectedDefName = defName;
@@ -161,11 +153,45 @@ public static class ModSettingsWindow
 			if (typeof(T) != typeof(FactionDef))
 				return;
 
+			listing.Gap(8f);
+
 			if (listing.SelectionButton(Strings.Translated.NoFaction,
 				_currentlySelectedDefName == Strings.NoFactionKey))
 			{
 				_currentlySelectedDefName = Strings.NoFactionKey;
 			}
+		}
+
+		private List<(string Label, string DefName, string Group)>? _groupedDefs;
+
+		private List<(string Label, string DefName, string Group)> BuildGroupedDefs()
+		{
+			var defs = Defs.Select(static def => (def.LabelCap.Resolve(), def.defName)).ToList();
+			ReplaceEmptyLabels(defs);
+
+			var groups = Defs.ToDictionary(static def => def.defName, static def => XenotypeGroups.GroupOf(def));
+
+			defs.Sort((a, b)
+				=> XenotypeGroups.Compare(groups[a.defName], groups[b.defName]) is var groupResult && groupResult != 0
+					? groupResult
+					: string.CompareOrdinal(a.Item1, b.Item1) is var labelResult && labelResult != 0
+						? labelResult
+						: string.CompareOrdinal(a.defName, b.defName));
+
+			var result = new List<(string, string, string)>(defs.Count);
+			foreach (var (defLabel, defName) in defs)
+			{
+				var label = defLabel;
+				if (!defName.EqualsIgnoreCase(label)
+					&& defs.Exists(otherDef => otherDef.Item1.EqualsIgnoreCase(label) && otherDef.defName != defName))
+				{
+					label += $" ({defName})";
+				}
+
+				result.Add((label, defName, XenotypeGroups.HeaderFor(groups[defName])!));
+			}
+
+			return result;
 		}
 
 		private static void ReplaceEmptyLabels(List<(string label, string defName)> defs)
@@ -187,11 +213,18 @@ public static class ModSettingsWindow
 			if (_currentlySelectedDefName is null)
 				return;
 
+			var xenotypeChances = XenotypeChanceDatabase<T>.For(_currentlySelectedDefName);
+
+			// FORKED: options stay visible below the scrolling list
+			const float footerHeight = (FOOTER_ROW_HEIGHT * 2f) + 14f;
+			var footerRect = outRect with { yMin = outRect.yMax - footerHeight, width = outRect.width - 20f };
+			outRect.yMax -= footerHeight;
+			DrawFooter(footerRect, xenotypeChances);
+
 			using var listingScope
 				= new ScrollableListingScope(outRect, _xenotypeScrollViewStatus, new() { verticalSpacing = 4f });
 			
 			var listing = listingScope.Listing;
-			var xenotypeChances = XenotypeChanceDatabase<T>.For(_currentlySelectedDefName);
 
 			TemplateButtons(listing, xenotypeChances);
 			listing.Gap(6f);
@@ -206,10 +239,15 @@ public static class ModSettingsWindow
 			var allowedXenotypes = xenotypeChances.AllAllowedXenotypeChances
 				.Select(static xenotypeChance => (xenotypeChance.Xenotype, xenotypeChance)).ToList();
 
+			// FORKED: sort into groups: generated and baseliner first, then vanilla, each mod, and custom xenotypes
 			allowedXenotypes.Sort(static (aKey, bKey) =>
 			{
 				var a = aKey.Xenotype;
 				var b = bKey.Xenotype;
+
+				var groupResult = XenotypeGroups.Compare(a, b);
+				if (groupResult != 0)
+					return groupResult;
 
 				var bIsBaseliner = b.Def == XenotypeDefOf.Baseliner;
 
@@ -227,8 +265,17 @@ public static class ModSettingsWindow
 			});
 
 			// then show all configurable xenotypes
+			string? currentGroup = null;
 			foreach (var (xenotype, xenotypeChance) in allowedXenotypes)
 			{
+				var group = XenotypeGroups.HeaderFor(xenotype);
+				if (group != currentGroup)
+				{
+					currentGroup = group;
+					if (group != null)
+						XenotypeGroups.DrawHeader(listing, group);
+				}
+
 				var label = xenotype.DisplayLabel;
 
 				listing.XenotypeChanceDisplay(xenotypeChances, xenotypeChance, (label != xenotype.Name
@@ -238,29 +285,6 @@ public static class ModSettingsWindow
 						&& other.Xenotype.DisplayLabel.EqualsIgnoreCase(label)));
 			}
 
-			listing.GapLine();
-
-			var architeCheckboxResult = xenotypeChances.AllowArchiteXenotypes;
-			listing.CheckboxLabeled(Strings.Translated.AllowArchiteXenotypes, ref architeCheckboxResult);
-			xenotypeChances.AllowArchiteXenotypes = architeCheckboxResult;
-
-			listing.Gap(6f);
-			XenotypeChancesTypeButtons(listing, xenotypeChances);
-			SetAllWeightsButton(listing, xenotypeChances);
-
-			// hint to notify user about the total chance of weighted xenotypes
-			// seems useless
-			// if (!xenotypeChances.OnlyAbsoluteChancesAllowed)
-			// {
-			// 	listing.Label($"{Strings.Translated.WeightDistributionHint} {
-			// 		(xenotypeChances.GetRawWeightedDistributionChance() / 10f).ToString("##0.#",
-			// 			CultureInfo.InvariantCulture)}%");
-			// }
-			
-			listing.Gap(6f);
-
-			if (listing.ButtonText(Strings.Translated.Reset))
-				xenotypeChances.Reset();
 		}
 
 		private static int CompareLabelsAndNames(ModifiableXenotype a, ModifiableXenotype b)
@@ -349,45 +373,63 @@ public static class ModSettingsWindow
 			}
 		}
 
-		private static void XenotypeChancesTypeButtons(Listing_Standard listing, XenotypeChances<T> xenotypeChances)
-		{
-			var onlyAbsolute = xenotypeChances.OnlyAbsoluteChancesAllowed;
-			var onlyWeighted = xenotypeChances.OnlyWeightedChancesAllowed;
-
-			var drawDoubleButton = !onlyAbsolute && !onlyWeighted;
-			var listingButtonY = listing.curY;
-			
-			if (drawDoubleButton)
-				listing.ColumnWidth /= 2f;
-			
-			if (!onlyAbsolute && listing.ButtonText(Strings.Translated.AbsoluteToggle))
-				xenotypeChances.SetIsAbsoluteForAllowed(true);
-			
-			if (drawDoubleButton)
-			{
-				listing.curX += listing.ColumnWidth;
-				listing.curY = listingButtonY;
-			}
-			
-			if (!onlyWeighted && listing.ButtonText(Strings.Translated.WeightedToggle))
-				xenotypeChances.SetIsAbsoluteForAllowed(false);
-
-			if (!drawDoubleButton)
-				return;
-
-			listing.curX -= listing.ColumnWidth;
-			listing.ColumnWidth *= 2;
-		}
+		private const float FOOTER_ROW_HEIGHT = 30f;
 
 		private (float Value, string String) _allWeightSetterValue = (1, "1");
 
-		private void SetAllWeightsButton(Listing_Standard listing, XenotypeChances<T> xenotypeChances)
+		/// <summary>FORKED: archite checkbox on the first row, mode, weight and reset buttons on the second</summary>
+		private void DrawFooter(Rect rect, XenotypeChances<T> xenotypeChances)
 		{
-			var weightsButtonResult = listing.TextBoxButton(Strings.Translated.WeightSetterButton, _allWeightSetterValue.String);
-			Listing_StandardExtensions.InterpretWeightString(ref _allWeightSetterValue, weightsButtonResult.Text);
-			
-			if (weightsButtonResult.Clicked)
+			const float gap = 6f;
+
+			var color = GUI.color;
+			GUI.color = new(1f, 1f, 1f, 0.3f);
+			Widgets.DrawLineHorizontal(rect.x, rect.y + 2f, rect.width);
+			GUI.color = color;
+
+			var architeRect = new Rect(rect.x, rect.y + 8f, rect.width, FOOTER_ROW_HEIGHT);
+			var architeCheckboxResult = xenotypeChances.AllowArchiteXenotypes;
+			Widgets.CheckboxLabeled(architeRect, Strings.Translated.AllowArchiteXenotypes, ref architeCheckboxResult);
+			xenotypeChances.AllowArchiteXenotypes = architeCheckboxResult;
+
+			var row = new Rect(rect.x, architeRect.yMax + 4f, rect.width, FOOTER_ROW_HEIGHT);
+			var onlyAbsolute = xenotypeChances.OnlyAbsoluteChancesAllowed;
+			var onlyWeighted = xenotypeChances.OnlyWeightedChancesAllowed;
+			var modeButtonCount = (onlyAbsolute ? 0 : 1) + (onlyWeighted ? 0 : 1);
+
+			var resetWidth = Math.Max(70f, Text.CalcSize(Strings.Translated.Reset).x + 20f);
+			var weightFieldWidth = 50f;
+			var remaining = row.width - resetWidth - weightFieldWidth - (gap * (modeButtonCount + 2));
+			var buttonWidth = remaining / (modeButtonCount + 1);
+
+			var x = row.x;
+			if (!onlyAbsolute)
+			{
+				if (Widgets.ButtonText(new(x, row.y, buttonWidth, row.height), Strings.Translated.AbsoluteToggle))
+					xenotypeChances.SetIsAbsoluteForAllowed(true);
+
+				x += buttonWidth + gap;
+			}
+
+			if (!onlyWeighted)
+			{
+				if (Widgets.ButtonText(new(x, row.y, buttonWidth, row.height), Strings.Translated.WeightedToggle))
+					xenotypeChances.SetIsAbsoluteForAllowed(false);
+
+				x += buttonWidth + gap;
+			}
+
+			var setWeightsClicked = Widgets.ButtonText(new(x, row.y, buttonWidth, row.height),
+				Strings.Translated.WeightSetterButton);
+			x += buttonWidth + 2f;
+
+			var weightText = Widgets.TextField(new(x, row.y, weightFieldWidth, row.height), _allWeightSetterValue.String);
+			Listing_StandardExtensions.InterpretWeightString(ref _allWeightSetterValue, weightText);
+			if (setWeightsClicked)
 				xenotypeChances.SetWeightForAllowedWeightedXenotypes(_allWeightSetterValue.Value);
+
+			if (Widgets.ButtonText(new(row.xMax - resetWidth, row.y, resetWidth, row.height), Strings.Translated.Reset))
+				xenotypeChances.Reset();
 		}
 
 		private static void InactiveLabel(Listing_Standard listing,
@@ -474,6 +516,106 @@ public static class ModSettingsWindow
 				|| !createXenotypeDialog.WithinAcceptableBiostatLimits(false);
 			
 			return createXenotypeDialog;
+		}
+	}
+
+	/// <summary>FORKED: list of existing xenotype defs, with buttons to edit their genes, name and description</summary>
+	public class ExistingXenotypesTab : Tab
+	{
+		private readonly ScrollViewStatus _scrollViewStatus = new();
+		private string _searchText = "";
+		private List<XenotypeDef>? _editableDefs;
+		public Listing_Standard Listing { get; } = new() { verticalSpacing = 4f };
+
+		public override void DoWindowContents(Rect inRect)
+		{
+			const float rowHeight = 32f;
+			const float buttonWidth = 110f;
+
+			Widgets.Label(new Rect(inRect.x, inRect.y, inRect.width, 24f), Strings.Translated.ExistingXenotypesHint);
+			inRect.yMin += 28f;
+
+			var searchLabelWidth = Text.CalcSize(Strings.Translated.Search).x + 8f;
+			Widgets.Label(new Rect(inRect.x, inRect.y + 4f, searchLabelWidth, 24f), Strings.Translated.Search);
+			_searchText = Widgets.TextField(new(inRect.x + searchLabelWidth, inRect.y, 300f, 30f), _searchText);
+			inRect.yMin += 36f;
+
+			using var listingScope = new ScrollableListingScope(inRect, _scrollViewStatus, Listing);
+
+			_editableDefs ??= XenotypeDefEditDatabase.EditableDefs;
+			string? currentGroup = null;
+
+			foreach (var def in _editableDefs)
+			{
+				if (_searchText.Length > 0
+					&& (def.label ?? "").IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0
+					&& def.defName.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0)
+				{
+					continue;
+				}
+
+				var group = XenotypeGroups.HeaderFor(def);
+				if (group != currentGroup)
+				{
+					currentGroup = group;
+					if (group != null)
+						XenotypeGroups.DrawHeader(Listing, group);
+				}
+
+				var rowRect = Listing.GetRect(rowHeight);
+				var edited = XenotypeDefEditDatabase.IsEdited(def);
+
+				if (edited)
+					Widgets.DrawHighlightSelected(rowRect);
+				else if (Mouse.IsOver(rowRect))
+					Widgets.DrawHighlight(rowRect);
+
+				var color = GUI.color;
+				GUI.color = XenotypeDef.IconColor;
+				GUI.DrawTexture(new(rowRect.x, rowRect.y + 1f, rowHeight - 2f, rowHeight - 2f), def.Icon);
+				GUI.color = color;
+
+				var buttonCount = edited ? 3 : 2;
+				var labelRect = new Rect(rowRect.x + rowHeight + 6f, rowRect.y,
+					rowRect.width - rowHeight - 6f - ((buttonWidth + 4f) * 3), rowHeight);
+
+				var label = $"{def.LabelCap} ({def.defName})";
+				if (edited)
+					label += $" [{Strings.Translated.Edited}]";
+
+				var anchor = Text.Anchor;
+				Text.Anchor = TextAnchor.MiddleLeft;
+				Widgets.Label(labelRect, label.Truncate(labelRect.width));
+				Text.Anchor = anchor;
+				TooltipHandler.TipRegion(labelRect, $"{def.LabelCap}\n{def.modContentPack?.Name ?? ""}\n\n{def.description}");
+
+				var buttonX = rowRect.xMax - ((buttonWidth + 4f) * buttonCount);
+				var genesButtonRect = new Rect(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f);
+				if (def == XenotypeDefOf.Baseliner)
+					TooltipHandler.TipRegion(genesButtonRect, Strings.Translated.BaselinerEditHint);
+
+				if (Widgets.ButtonText(genesButtonRect, Strings.Translated.Genes))
+					Find.WindowStack.Add(new Dialog_EditXenotypeDef(def));
+
+				buttonX += buttonWidth + 4f;
+				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f),
+					Strings.Translated.Description))
+				{
+					Find.WindowStack.Add(new Dialog_EditXenotypeDescription(def));
+				}
+
+				if (!edited)
+					continue;
+
+				buttonX += buttonWidth + 4f;
+				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f),
+					Strings.Translated.ResetEdit))
+				{
+					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+						Strings.Translated.ConfirmResetEdit + "\n\n" + def.LabelCap,
+						() => XenotypeDefEditDatabase.Reset(def), destructive: true));
+				}
+			}
 		}
 	}
 
