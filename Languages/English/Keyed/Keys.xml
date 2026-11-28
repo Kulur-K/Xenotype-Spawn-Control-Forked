@@ -19,4 +19,17 @@
 	<bs.xsc.WeightedToggle>Set all chances to weighted</bs.xsc.WeightedToggle>
 	<bs.xsc.WeightSetterButton>Set all weights to</bs.xsc.WeightSetterButton>
 	<bs.xsc.IndividualAbsoluteModeToggleTooltip>Toggle whether this Xenotype uses absolute chances</bs.xsc.IndividualAbsoluteModeToggleTooltip>
+	<!-- FORKED -->
+	<klr.xscf.ExistingXenotypes>Existing xenotypes</klr.xscf.ExistingXenotypes>
+	<klr.xscf.ExistingXenotypesHint>Edits apply to all saves and only to pawns generated from now on. Existing pawns are not changed.</klr.xscf.ExistingXenotypesHint>
+	<klr.xscf.Genes>Genes</klr.xscf.Genes>
+	<klr.xscf.Description>Description</klr.xscf.Description>
+	<klr.xscf.Edited>edited</klr.xscf.Edited>
+	<klr.xscf.ResetEdit>Reset</klr.xscf.ResetEdit>
+	<klr.xscf.ConfirmResetEdit>Remove all edits of this xenotype and restore the original?</klr.xscf.ConfirmResetEdit>
+	<klr.xscf.EditXenotypeHeader>Edit xenotype</klr.xscf.EditXenotypeHeader>
+	<klr.xscf.EditDescriptionHeader>Edit description</klr.xscf.EditDescriptionHeader>
+	<klr.xscf.RestoreOriginal>Restore original</klr.xscf.RestoreOriginal>
+	<klr.xscf.NameEmpty>The name cannot be empty.</klr.xscf.NameEmpty>
+	<klr.xscf.Search>Search:</klr.xscf.Search>
 </LanguageData>

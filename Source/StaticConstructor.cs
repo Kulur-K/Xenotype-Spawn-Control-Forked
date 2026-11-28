@@ -12,5 +12,8 @@ namespace XenotypeSpawnControl;
 public static class StaticConstructor
 {
 	static StaticConstructor()
-		=> XenotypeChanceDatabases.AssignXenotypeChancesFromSettings();
+	{
+		XenotypeDefEditDatabase.Initialize(); // FORKED
+		XenotypeChanceDatabases.AssignXenotypeChancesFromSettings();
+	}
 }

@@ -45,7 +45,21 @@ public static class Strings
 			WeightedToggle = "bs.xsc.WeightedToggle",
 			WeightSetterButton = "bs.xsc.WeightSetterButton",
 			IndividualAbsoluteModeToggleTooltip = "bs.xsc.IndividualAbsoluteModeToggleTooltip",
-			Weight = "bs.xsc.Weight";
+			Weight = "bs.xsc.Weight",
+
+			// FORKED: keys added by the fork
+			ExistingXenotypes = "klr.xscf.ExistingXenotypes",
+			ExistingXenotypesHint = "klr.xscf.ExistingXenotypesHint",
+			Genes = "klr.xscf.Genes",
+			Description = "klr.xscf.Description",
+			Edited = "klr.xscf.Edited",
+			ResetEdit = "klr.xscf.ResetEdit",
+			ConfirmResetEdit = "klr.xscf.ConfirmResetEdit",
+			EditXenotypeHeader = "klr.xscf.EditXenotypeHeader",
+			EditDescriptionHeader = "klr.xscf.EditDescriptionHeader",
+			RestoreOriginal = "klr.xscf.RestoreOriginal",
+			NameEmpty = "klr.xscf.NameEmpty",
+			Search = "klr.xscf.Search";
 
 #pragma warning disable CS8618
 		static Translated() => TranslateAllFields(typeof(Translated));

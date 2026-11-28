@@ -32,6 +32,10 @@ public static class ModSettingsWindow
 		new EditorTab
 		{
 			Title = Strings.Translated.Editor
+		},
+		new ExistingXenotypesTab
+		{
+			Title = Strings.Translated.ExistingXenotypes
 		}
 	];
 
@@ -474,6 +478,90 @@ public static class ModSettingsWindow
 				|| !createXenotypeDialog.WithinAcceptableBiostatLimits(false);
 			
 			return createXenotypeDialog;
+		}
+	}
+
+	/// <summary>FORKED: list of existing xenotype defs, with buttons to edit their genes, name and description</summary>
+	public class ExistingXenotypesTab : Tab
+	{
+		private readonly ScrollViewStatus _scrollViewStatus = new();
+		private string _searchText = "";
+		public Listing_Standard Listing { get; } = new() { verticalSpacing = 4f };
+
+		public override void DoWindowContents(Rect inRect)
+		{
+			const float rowHeight = 32f;
+			const float buttonWidth = 110f;
+
+			Widgets.Label(new Rect(inRect.x, inRect.y, inRect.width, 24f), Strings.Translated.ExistingXenotypesHint);
+			inRect.yMin += 28f;
+
+			var searchLabelWidth = Text.CalcSize(Strings.Translated.Search).x + 8f;
+			Widgets.Label(new Rect(inRect.x, inRect.y + 4f, searchLabelWidth, 24f), Strings.Translated.Search);
+			_searchText = Widgets.TextField(new(inRect.x + searchLabelWidth, inRect.y, 300f, 30f), _searchText);
+			inRect.yMin += 36f;
+
+			using var listingScope = new ScrollableListingScope(inRect, _scrollViewStatus, Listing);
+
+			foreach (var def in XenotypeDefEditDatabase.EditableDefs)
+			{
+				if (_searchText.Length > 0
+					&& (def.label ?? "").IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0
+					&& def.defName.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) < 0)
+				{
+					continue;
+				}
+
+				var rowRect = Listing.GetRect(rowHeight);
+				var edited = XenotypeDefEditDatabase.IsEdited(def);
+
+				if (edited)
+					Widgets.DrawHighlightSelected(rowRect);
+				else if (Mouse.IsOver(rowRect))
+					Widgets.DrawHighlight(rowRect);
+
+				var color = GUI.color;
+				GUI.color = XenotypeDef.IconColor;
+				GUI.DrawTexture(new(rowRect.x, rowRect.y + 1f, rowHeight - 2f, rowHeight - 2f), def.Icon);
+				GUI.color = color;
+
+				var buttonCount = edited ? 3 : 2;
+				var labelRect = new Rect(rowRect.x + rowHeight + 6f, rowRect.y,
+					rowRect.width - rowHeight - 6f - ((buttonWidth + 4f) * 3), rowHeight);
+
+				var label = $"{def.LabelCap} ({def.defName})";
+				if (edited)
+					label += $" [{Strings.Translated.Edited}]";
+
+				var anchor = Text.Anchor;
+				Text.Anchor = TextAnchor.MiddleLeft;
+				Widgets.Label(labelRect, label.Truncate(labelRect.width));
+				Text.Anchor = anchor;
+				TooltipHandler.TipRegion(labelRect, $"{def.LabelCap}\n{def.modContentPack?.Name ?? ""}\n\n{def.description}");
+
+				var buttonX = rowRect.xMax - ((buttonWidth + 4f) * buttonCount);
+				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f), Strings.Translated.Genes))
+					Find.WindowStack.Add(new Dialog_EditXenotypeDef(def));
+
+				buttonX += buttonWidth + 4f;
+				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f),
+					Strings.Translated.Description))
+				{
+					Find.WindowStack.Add(new Dialog_EditXenotypeDescription(def));
+				}
+
+				if (!edited)
+					continue;
+
+				buttonX += buttonWidth + 4f;
+				if (Widgets.ButtonText(new(buttonX, rowRect.y + 2f, buttonWidth, rowHeight - 4f),
+					Strings.Translated.ResetEdit))
+				{
+					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+						Strings.Translated.ConfirmResetEdit + "\n\n" + def.LabelCap,
+						() => XenotypeDefEditDatabase.Reset(def), destructive: true));
+				}
+			}
 		}
 	}
 

@@ -7,5 +7,9 @@ namespace XenotypeSpawnControl;
 
 public class ModSettings : Verse.ModSettings
 {
-	public override void ExposeData() => XenotypeChanceDatabases.ExposeData();
+	public override void ExposeData()
+	{
+		XenotypeChanceDatabases.ExposeData();
+		XenotypeDefEditDatabase.ExposeData(); // FORKED
+	}
 }

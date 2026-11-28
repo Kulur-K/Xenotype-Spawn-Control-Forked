@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<bs.xsc.PawnKinds>ポーンの種類</bs.xsc.PawnKinds>
+	<bs.xsc.Editor>自作ゼノタイプ</bs.xsc.Editor>
+	<bs.xsc.NoFaction>派閥なし</bs.xsc.NoFaction>
+	<bs.xsc.HybridTooltip>有効な2つのゼノタイプを親として、遺伝子を混ぜた組み合わせで出現する確率</bs.xsc.HybridTooltip>
+	<bs.xsc.RandomGenes>ランダム遺伝子</bs.xsc.RandomGenes>
+	<bs.xsc.RandomGenesTooltip>代謝効率の制限だけを守った、完全にランダムな遺伝子で出現する確率</bs.xsc.RandomGenesTooltip>
+	<bs.xsc.MakeYourOwn>新しく作る</bs.xsc.MakeYourOwn>
+	<bs.xsc.INACTIVE>無効</bs.xsc.INACTIVE>
+	<bs.xsc.Edit>編集</bs.xsc.Edit>
+	<bs.xsc.Apply>適用</bs.xsc.Apply>
+	<bs.xsc.ConfirmResetXenotypeSpawnControl>Xenotype Spawn Control の設定をすべてリセットしますか？</bs.xsc.ConfirmResetXenotypeSpawnControl>
+	<bs.xsc.Templates>テンプレート</bs.xsc.Templates>
+	<bs.xsc.NoTemplateHint>テンプレートなし</bs.xsc.NoTemplateHint>
+	<bs.xsc.AllowArchiteXenotypes>アーカイト遺伝子を持つゼノタイプを許可</bs.xsc.AllowArchiteXenotypes>
+	<bs.xsc.Weight>重み</bs.xsc.Weight>
+	<bs.xsc.AbsoluteToggle>すべて割合指定にする</bs.xsc.AbsoluteToggle>
+	<bs.xsc.WeightedToggle>すべて重み指定にする</bs.xsc.WeightedToggle>
+	<bs.xsc.WeightSetterButton>すべての重みを次の値にする:</bs.xsc.WeightSetterButton>
+	<bs.xsc.IndividualAbsoluteModeToggleTooltip>このゼノタイプを割合指定にするかを切り替える</bs.xsc.IndividualAbsoluteModeToggleTooltip>
+	<!-- FORKED -->
+	<klr.xscf.ExistingXenotypes>既存ゼノタイプ</klr.xscf.ExistingXenotypes>
+	<klr.xscf.ExistingXenotypesHint>編集は全セーブ共通で、これから生成されるポーンにだけ反映されます。すでにいるポーンは変わりません。</klr.xscf.ExistingXenotypesHint>
+	<klr.xscf.Genes>遺伝子</klr.xscf.Genes>
+	<klr.xscf.Description>解説文</klr.xscf.Description>
+	<klr.xscf.Edited>編集済み</klr.xscf.Edited>
+	<klr.xscf.ResetEdit>元に戻す</klr.xscf.ResetEdit>
+	<klr.xscf.ConfirmResetEdit>このゼノタイプの編集をすべて消して、元に戻しますか？</klr.xscf.ConfirmResetEdit>
+	<klr.xscf.EditXenotypeHeader>ゼノタイプの編集</klr.xscf.EditXenotypeHeader>
+	<klr.xscf.EditDescriptionHeader>解説文の編集</klr.xscf.EditDescriptionHeader>
+	<klr.xscf.RestoreOriginal>元の文に戻す</klr.xscf.RestoreOriginal>
+	<klr.xscf.NameEmpty>名前を空にはできません。</klr.xscf.NameEmpty>
+	<klr.xscf.Search>検索:</klr.xscf.Search>
+</LanguageData>
